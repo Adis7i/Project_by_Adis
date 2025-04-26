@@ -1,0 +1,8 @@
+{
+    "backup_folder" : "Backup",
+    "storing_fol" : {
+        "file_container" : "content",
+        "pass_container" : "password"
+    },
+    "temp_file" : "tmp.bin"
+}
