@@ -7,8 +7,6 @@ AdvancedFileEncryptor2000 is a program designed for encryption and decryption ta
 - The **cryptography** library (version 41.*) is recommended if you're having trouble with Rust-based cryptography.
   - If you're facing issues with cryptography using Rust, download **cryptography library version 41.\*** (this is based on personal experience with the version used by my dad).
 
-## Usage
-
 ### Command-Line Mode
 You can use the script `endecrypt.py` directly in the command line with the following syntax:
 
@@ -35,9 +33,6 @@ for more user-friendly interface, run Console.py
 python3 Console.py
 ```
 
-## Manual Mode
-When using the manual mode (CLI), be aware that the terminal session is redrawn after each command. It takes approximately **11 seconds** for the session to close and prevent any programs from running during this process. This delay ensures that the terminal is not interrupted while it is being redrawn by the *prompt_toolkit session.*
-
 ### Important Note
 - Please do not change the name of any file in this folder except the one that's in the *Backup* folder
 - Please run in venv for safer option, *sys.path* are being modified to ensure there is no error at importing module from another folder
@@ -57,3 +52,8 @@ AdvancedFileEncryptor2000/
 ├── __init__.py             
 └── sets.py                 # Add absolute path of parent of this folder into sys.path
 ```
+
+### FileSeeker
+Often referred as Manual mode, require **11 second** Before actually quitting seeker mode for
+terminal redrawing problem. Has a nice little sweet positive comment that actually requires threading
+which it mean once it quit it can't run the same anymore but you can disable it, in other words disable the positive *quote*
