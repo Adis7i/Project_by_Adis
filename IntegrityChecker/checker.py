@@ -93,6 +93,4 @@ class FileChecker() :
                 self.paths = remlist_all(row['path'], self.paths)
                 if should_write :
                     writer.writerow(row)
-
-
-FileChecker(["/home","/","fuck you"])
+#This is not ready yet
