@@ -40,7 +40,7 @@ class FileChecker() :
             for indx, i in enumerate(paths) :
                 paths[indx] = str(i)
             for i in [DATA_PATH, TEMP_PATH] :
-                if not os.access(i, os.R_OK, os.W_OK) :
+                if not os.access(i, os.W_OK | os.R_OK) :
                     raise PermissionError("Either DATA_PATH or TEMP_PATH are not permissible to read and write")
             for i in paths :
                 if not os.access(i, os.R_OK) :
@@ -84,34 +84,34 @@ Recorded Mtime : {mtime}"""
         KEYS = ['path','hash','mtime']
         strformat = "%Y-%m-%d_%H:%M:%S"
         with open(DATA_PATH, 'r') as source, open(TEMP_PATH, 'w') as temp, open(LOG_PATH, 'a') as logger :
-            logger.write(f"[{dt.now().strftime(strformat)}] Start file opening")
+            logger.write(f"[{dt.now().strftime(strformat)}] Start file opening\n")
             reader = csv.DictReader(source)
             writer = csv.DictWriter(temp, fieldnames=reader.fieldnames)
             writer.writeheader()
             should_write = True
             for i in KEYS :
                 if i not in reader.fieldnames :
-                    logger.write(f"[{dt.now().strftime(strformat)}] Raised exception because of Missing Fieldnames")
+                    logger.write(f"[{dt.now().strftime(strformat)}] Raised exception because of Missing Fieldnames\n")
                     raise FieldnameError(f"Missing required fieldname {i}")
-            logger.write(f"[{dt.now().strftime(strformat)}] Starting scanning phase")
+            logger.write(f"[{dt.now().strftime(strformat)}] Starting scanning phase\n")
             for indx, row in enumerate(reader) :
                 should_write = True
-                logger.write(f"[{indx}] Iteration : scanning file")
+                logger.write(f"[{indx}] Iteration : scanning file\n")
                 path = Path(row['path'])
                 hash_val = row['hash']
                 modtime = row['mtime']
                 if not path.exists() :
                     print(f"{UNREC} Path {path} Doesn't exist !")
                     should_write = False
-                    logger.write(f"[{indx}] Iteration : WARNING \'{path}\' Doesn't exists !")
+                    logger.write(f"[{indx}] Iteration : WARNING \'{path}\' Doesn't exists !\n")
                     continue
 
                 file_hash = self.get_hash(path)
                 if hash_val != file_hash :
                     print(f"{CRITICAL} Path \'{path}\' Compromised !")
-                    logger.write(f"[{indx}] Iteration : {path.name} INTEGRITY COMPROMISED")
-                    logger.write(f"[{dt.now().strftime(strformat)}] On time, Report\n{self.get_file_report(path, hash_val, modtime)}")
-                    logger.write(f"[{indx}] Generating new hash")
+                    logger.write(f"[{indx}] Iteration : {path.name} INTEGRITY COMPROMISED\n")
+                    logger.write(f"[{dt.now().strftime(strformat)}] On time, Report\n{self.get_file_report(path, hash_val, modtime)}\n")
+                    logger.write(f"[{indx}] Generating new hash\n")
                     row['hash'] = self.get_hash(path)
                     row['mtime'] = path.stat().st_mtime
 
@@ -120,11 +120,13 @@ Recorded Mtime : {mtime}"""
                     writer.writerow(row)
             
             if self.paths :
-                logger.write(f"[{dt.now().strftime(strformat)}] Assigning new file")
+                logger.write(f"[{dt.now().strftime(strformat)}] Assigning new file\n")
                 for i in self.paths :
                     if os.path.exists(i) :
-                        logger.write(f"Path {i} Exists writing down file information")
+                        logger.write(f"Path {i} Exists writing down file information\n")
                         writer.writerow({'path' : i, 'hash' : self.get_hash(i), 'mtime' : Path(i).stat().st_mtime})
+        os.replace(TEMP_PATH, DATA_PATH)
+        Path(TEMP_PATH).touch()
 
 Checker = FileChecker(["/home/adis/PersonalSecure/main.py","/home/adis/PersonalSecure/example.png"])
 Checker.main()
