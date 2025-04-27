@@ -1,7 +1,7 @@
 # AFEncryptor (Advanced File Encryptor)
 
 ## Description
-AdvancedFileEncryptor2000 is a program designed for encryption and decryption tasks. It provides both command-line and user-friendly UI modes for various cryptographic functions. This tool is optimized for **Windows 7** equipped with **Python 3.8**.
+AdvancedFileEncryptor2000 is a program designed for encryption and decryption tasks. It provides both command-line and user-friendly UI modes for various cryptographic functions
 
 ## Requirements
 - The **cryptography** library (version 41.*) is recommended if you're having trouble with Rust-based cryptography.
