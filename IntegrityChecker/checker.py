@@ -65,9 +65,19 @@ class FileChecker() :
                 hash_val.update(chunk)
         return hash_val.hexdigest()
 
+    
+    def get_file_report(self, path: Path, hash_val, mtime) :
+        if not path.exists() :
+            raise FileNotFoundError(f"\'{path}\' Does NOT exists")
+        return f"""File Path : {str(path)}
+File Hash : {self.get_hash(path)}
+File Mtime : {path.stat().st_mtime}
+Recorded Hash : {hash_val}
+Recorded Mtime : {mtime}"""
+        
 
     def main(self) -> None :
-        KEYS = ['path','hash']
+        KEYS = ['path','hash','mtime']
         strformat = "%Y-%m-%d_%H:%M:%S"
         with open(DATA_PATH, 'r') as source, open(TEMP_PATH, 'w') as temp, open(LOG_PATH, 'a') as logger :
             logger.write(f"[{dt.now().strftime(strformat)}] Start file opening")
@@ -80,17 +90,25 @@ class FileChecker() :
                     logger.write(f"[{dt.now().strftime(strformat)}] Raised exception because of Missing Fieldnames")
                     raise FieldnameError(f"Missing required fieldname {i}")
             logger.write(f"[{dt.now().strftime(strformat)}] Starting scanning phase")
-            for row in reader :
+            for indx, row in enumerate(reader) :
                 should_write = True
-                if not os.path.exists(row['path']) :
-                    print(f"{UNREC} Path {row['path']} Doesn't exist !")
+                logger.write(f"[{indx}] Iteration : scanning file")
+                path = Path(row['path'])
+                hash_val = row['hash']
+                modtime = row['mtime']
+                if not path.exists() :
+                    print(f"{UNREC} Path {path} Doesn't exist !")
                     should_write = False
+                    logger.write(f"[{indx}] Iteration : WARNING \'{path}\' Doesn't exists !")
                     continue
-                file_hash = self.get_hash(row['path'])
-                if row['hash'] != file_hash :
-                    print(f"{CRITICAL} Path \'{row['path']}\' Compromised !")
 
-                self.paths = remlist_all(row['path'], self.paths)
+                file_hash = self.get_hash(path)
+                if hash_val != file_hash :
+                    print(f"{CRITICAL} Path \'{path}\' Compromised !")
+                    logger.write(f"[{indx}] Iteration : {path.name} INTEGRITY COMPROMISED")
+                    logger.write(f"[{dt.now().strftime(strformat)}] On time, Report\n{self.get_file_report(path, hash_val, modtime)}")
+
+                self.paths = remlist_all(path, self.paths)
                 if should_write :
                     writer.writerow(row)
 #This is not ready yet
