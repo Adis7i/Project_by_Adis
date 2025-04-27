@@ -49,12 +49,16 @@ class FileChecker() :
 
         except ValueError as e :
             print(f"{CRITICAL} Invalid value : {e}")
+            sys.exit()
         except FileNotFoundError as e :
             print(f"{CRITICAL} Error, file not found : {e}")
+            sys.exit()
         except PermissionError as e :
             print(f"{CRITICAL} Permission denied : {e}")
+            sys.exit()
         except Exception as e :
             print(f"{CRITICAL} Unexpected exception was raised : {e}")
+            sys.exit()
     
     @staticmethod
     def get_hash(path) -> str :
@@ -107,8 +111,21 @@ Recorded Mtime : {mtime}"""
                     print(f"{CRITICAL} Path \'{path}\' Compromised !")
                     logger.write(f"[{indx}] Iteration : {path.name} INTEGRITY COMPROMISED")
                     logger.write(f"[{dt.now().strftime(strformat)}] On time, Report\n{self.get_file_report(path, hash_val, modtime)}")
+                    logger.write(f"[{indx}] Generating new hash")
+                    row['hash'] = self.get_hash(path)
+                    row['mtime'] = path.stat().st_mtime
 
                 self.paths = remlist_all(path, self.paths)
                 if should_write :
                     writer.writerow(row)
+            
+            if self.paths :
+                logger.write(f"[{dt.now().strftime(strformat)}] Assigning new file")
+                for i in self.paths :
+                    if os.path.exists(i) :
+                        logger.write(f"Path {i} Exists writing down file information")
+                        writer.writerow({'path' : i, 'hash' : self.get_hash(i), 'mtime' : Path(i).stat().st_mtime})
+
+Checker = FileChecker(["/home/adis/PersonalSecure/main.py","/home/adis/PersonalSecure/example.png"])
+Checker.main()
 #This is not ready yet
