@@ -7,12 +7,12 @@ from datetime import datetime as dt
 try :
     from Global_Function import FileSeeker, MultPath, remlist_all
     from Global_Function.paintext import *
-    from AdvancedFileEncryptor2000.endecrypt import FileEncryptor
+    from AFEncryptor.endecrypt import FileEncryptor
 except :
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     from Global_Function import FileSeeker, MultPath, remlist_all
     from Global_Function.paintext import *
-    from AdvancedFileEncryptor2000.endecrypt import FileEncryptor
+    from AFEncryptor.endecrypt import FileEncryptor
 
 #=========== PATH ===========
 DATA_PATH = Path(__file__).parent / "data.csv"

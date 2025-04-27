@@ -1,4 +1,4 @@
-# AdvancedFileEncryptor2000
+# AFEncryptor (Advanced File Encryptor)
 
 ## Description
 AdvancedFileEncryptor2000 is a program designed for encryption and decryption tasks. It provides both command-line and user-friendly UI modes for various cryptographic functions. This tool is optimized for **Windows 7** equipped with **Python 3.8**.
@@ -53,7 +53,25 @@ AdvancedFileEncryptor2000/
 └── sets.py                 # Add absolute path of parent of this folder into sys.path
 ```
 
-### FileSeeker
-Often referred as Manual mode, require **11 second** Before actually quitting seeker mode for
-terminal redrawing problem. Has a nice little sweet positive comment that actually requires threading
-which it mean once it quit it can't run the same anymore but you can disable it, in other words disable the positive *quote*
+# FileSeeker
+
+## Description
+FileSeeker (*Often referred as manual mode*) is a manual file searching mode
+
+## Features
+- Positive quote (Threading)
+
+- Quote can be deactivate
+
+- Multipath picking
+
+# Note
+Before quitting program needs **11 seconds** to fully exit because of terminal redrawing session
+
+# EmbedFileToImage
+
+## Description
+Embedding file to image program, can either encode or decode
+
+# Important Note
+- Every program needs it's other module such as Global_Function Module 
