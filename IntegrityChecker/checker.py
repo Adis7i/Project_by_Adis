@@ -7,12 +7,11 @@ from datetime import datetime as dt
 try :
     from Global_Function import FileSeeker, MultPath, remlist_all
     from Global_Function.paintext import *
-    from AFEncryptor.endecrypt import FileEncryptor
 except :
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     from Global_Function import FileSeeker, MultPath, remlist_all
     from Global_Function.paintext import *
-    from AFEncryptor.endecrypt import FileEncryptor
+
 
 #=========== PATH ===========
 DATA_PATH = Path(__file__).parent / "data.csv"
@@ -68,22 +67,30 @@ class FileChecker() :
             while chunk := source.read(SIZE) :
                 hash_val.update(chunk)
         return hash_val.hexdigest()
-
     
-    def get_file_report(self, path: Path, hash_val, mtime) :
+    
+    def get_file_report(self, path: Path, hash_val, mtime, strformat) -> str :
+        if not isinstance(path, Path) :
+            raise ValueError(f"path Parameter must be Path from pathlib, not \'{type(path).__name__}\'")
         if not path.exists() :
-            raise FileNotFoundError(f"\'{path}\' Does NOT exists")
+            raise FileNotFoundError(f"\'path\' Parameter, path does not exist !")
+        if path.is_dir() :
+            raise IsADirectoryError(f"\'path\' Parameter must lead to a file, not a directory")
+        
+        recorded_mtime = dt.fromtimestamp(mtime).strftime(strformat)
+        actual_mtime = dt.fromtimestamp(path.stat().st_mtime).strftime(strformat)
+
         return f"""File Path : {str(path)}
-File Hash : {self.get_hash(path)}
-File Mtime : {path.stat().st_mtime}
+File Hash : {self.get_hash(path)} ({recorded_mtime})
+File Mtime : {path.stat().st_mtime} ({actual_mtime})
 Recorded Hash : {hash_val}
 Recorded Mtime : {mtime}"""
         
-
     def main(self) -> None :
         KEYS = ['path','hash','mtime']
         strformat = "%Y-%m-%d_%H:%M:%S"
         with open(DATA_PATH, 'r') as source, open(TEMP_PATH, 'w') as temp, open(LOG_PATH, 'a') as logger :
+            logger.write(f"=====START OF REPORT=====\n")
             logger.write(f"[{dt.now().strftime(strformat)}] Start file opening\n")
             reader = csv.DictReader(source)
             writer = csv.DictWriter(temp, fieldnames=reader.fieldnames)
@@ -110,8 +117,8 @@ Recorded Mtime : {mtime}"""
                 if hash_val != file_hash :
                     print(f"{CRITICAL} Path \'{path}\' Compromised !")
                     logger.write(f"[{indx}] Iteration : {path.name} INTEGRITY COMPROMISED\n")
-                    logger.write(f"[{dt.now().strftime(strformat)}] On time, Report\n{self.get_file_report(path, hash_val, modtime)}\n")
-                    logger.write(f"[{indx}] Generating new hash\n")
+                    logger.write(f"[{dt.now().strftime(strformat)}] ===On time, Report===\n{self.get_file_report(path, hash_val, modtime, strformat)}\n")
+                    logger.write(f"[{indx}] ===Generating new hash===\n")
                     row['hash'] = self.get_hash(path)
                     row['mtime'] = path.stat().st_mtime
 
@@ -125,9 +132,9 @@ Recorded Mtime : {mtime}"""
                     if os.path.exists(i) :
                         logger.write(f"Path {i} Exists writing down file information\n")
                         writer.writerow({'path' : i, 'hash' : self.get_hash(i), 'mtime' : Path(i).stat().st_mtime})
+            logger.write(f"=====END OF REPORT=====\n\n")
         os.replace(TEMP_PATH, DATA_PATH)
         Path(TEMP_PATH).touch()
 
-Checker = FileChecker(["/home/adis/PersonalSecure/main.py","/home/adis/PersonalSecure/example.png"])
-Checker.main()
+
 #This is not ready yet

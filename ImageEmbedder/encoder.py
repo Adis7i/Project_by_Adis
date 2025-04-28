@@ -28,7 +28,7 @@ Date : 20-April-2025
 parser = argparse.ArgumentParser("Embed file to image program")
 parser.add_argument("mode", choices=["encode","decode"], help="Select mode between encode or decode")
 parser.add_argument("target", nargs="?", type=str, help="Enter desired file path to encode, leave blank if choose decode")
-parser.add_argument("image", nargs="?", type=str, help="Enter the desired Image path, required for both encode and decode unless if using manual mode")
+parser.add_argument("image", type=str, help="Enter the desired Image path, required for both encode and decode unless if using manual mode")
 parser.add_argument("name", nargs="?", type=str, help="Enter the desired file name, default name is datetime")
 parser.add_argument("--manual", action="store_true", help="use this flag to enter manual file picking")
 if __name__ == "__main__" : 

@@ -9,12 +9,12 @@ from prompt_toolkit.key_binding import KeyBindings
 from random import choice
 
 class FileSeeker() :
-    def __init__(self, path: Path, is_thread: bool = True, title = '', Multipath: bool = False):        
+    def __init__(self, path: Path, is_thread: bool = True, title = '', multipath: bool = False):        
         if not os.path.exists(path) :
             print(f"[{BOLD}{RED}!{RESET}] Path does NOT exists")
             exit()
         self.is_thread = is_thread
-        self.result = None if not Multipath else list()
+        self.result = None if not multipath else list()
         self.lock = threading.RLock()
         self.should_stop = False
         self.feedback_thread = threading.Thread(target=self.update_render)
@@ -26,7 +26,6 @@ class FileSeeker() :
         self.selection = -1
         self.feedback = ""
         self.title = title
-        self.mpath = Multipath
         self.positive_list = [
     f"{YELLOW}You {GREEN}matter{RESET} today", 
     f"{YELLOW}Sun{RESET} will rise soon",
@@ -150,7 +149,7 @@ class FileSeeker() :
             self.esc_quote = "Exiting... (this might take a while)"
             event.app.exit()
 
-        if not self.mpath :
+        if not isinstance(self.result, list):
             @kb.add("enter")
             def choose_file(event) :
                 path = self.path / self.listdir[self.selection]
