@@ -96,7 +96,7 @@ result_path = seeker.main()
 ## Note
 Before quitting program needs **11 seconds** to fully exit because of terminal redrawing session
 
-# EmbedFileToImage
+# ImageEmbedder
 
 ## Description
 Embedding file to image program, can either encode or decode
@@ -133,4 +133,4 @@ python3 encoder.py [-h] [--manual] {encode,decode} [target] image [name]
 
 - Custom name
 
-- Manual Mode
+- Manual Mod

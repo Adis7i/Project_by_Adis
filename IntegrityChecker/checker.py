@@ -1,9 +1,11 @@
 import os
 import sys
 import csv
+import tracemalloc
 from pathlib import Path
 from hashlib import sha256
 from datetime import datetime as dt
+from getpass import getuser
 try :
     from Global_Function import FileSeeker, MultPath, remlist_all
     from Global_Function.paintext import *
@@ -68,8 +70,7 @@ class FileChecker() :
                 hash_val.update(chunk)
         return hash_val.hexdigest()
     
-    
-    def get_file_report(self, path: Path, hash_val, mtime, strformat) -> str :
+    def get_file_report(self, path: Path, hash_val, mtime: int, strformat) -> str :
         if not isinstance(path, Path) :
             raise ValueError(f"path Parameter must be Path from pathlib, not \'{type(path).__name__}\'")
         if not path.exists() :
@@ -80,61 +81,77 @@ class FileChecker() :
         recorded_mtime = dt.fromtimestamp(mtime).strftime(strformat)
         actual_mtime = dt.fromtimestamp(path.stat().st_mtime).strftime(strformat)
 
-        return f"""File Path : {str(path)}
-File Hash : {self.get_hash(path)} ({recorded_mtime})
-File Mtime : {path.stat().st_mtime} ({actual_mtime})
-Recorded Hash : {hash_val}
-Recorded Mtime : {mtime}"""
+        return f"""
+File name      : {path.name}
+File Path      : {str(path)}
+File Hash      : {self.get_hash(path)}
+File Mtime     : {path.stat().st_mtime} ({actual_mtime})
+Recorded Hash  : {hash_val}
+Recorded Mtime : {mtime} ({recorded_mtime})
+"""
         
     def main(self) -> None :
         KEYS = ['path','hash','mtime']
-        strformat = "%Y-%m-%d_%H:%M:%S"
+        strformat = "%Y-%m-%d %H:%M:%S"
+
         with open(DATA_PATH, 'r') as source, open(TEMP_PATH, 'w') as temp, open(LOG_PATH, 'a') as logger :
-            logger.write(f"=====START OF REPORT=====\n")
-            logger.write(f"[{dt.now().strftime(strformat)}] Start file opening\n")
+            logger.write(f"""===== START OF INTEGRITY REPORT =====
+Timestamp      : {dt.now().strftime(strformat)}
+User           : {getuser()}
+Process ID     : {os.getpid()}
+Parent Process : {os.getppid()}\n""")
             reader = csv.DictReader(source)
             writer = csv.DictWriter(temp, fieldnames=reader.fieldnames)
             writer.writeheader()
             should_write = True
+
             for i in KEYS :
                 if i not in reader.fieldnames :
-                    logger.write(f"[{dt.now().strftime(strformat)}] Raised exception because of Missing Fieldnames\n")
+                    logger.write(f"[!!] Raised exception because of Missing Fieldnames\n")
                     raise FieldnameError(f"Missing required fieldname {i}")
-            logger.write(f"[{dt.now().strftime(strformat)}] Starting scanning phase\n")
+            logger.write("\n[ SCAN STARTED ]\n\n")
+
             for indx, row in enumerate(reader) :
                 should_write = True
-                logger.write(f"[{indx}] Iteration : scanning file\n")
                 path = Path(row['path'])
+                logger.write(f"[i] [{dt.now().strftime(strformat)}] Start Remonitor Iteration #{indx} ({path.name}) \n")
                 hash_val = row['hash']
                 modtime = row['mtime']
+
                 if not path.exists() :
                     print(f"{UNREC} Path {path} Doesn't exist !")
                     should_write = False
-                    logger.write(f"[{indx}] Iteration : WARNING \'{path}\' Doesn't exists !\n")
+                    logger.write(f"[!] WARNING path \'{str(path)}\' Doesn't exists !, skipping checks\n")
+                    logger.write(f"[i] End of Remonitor Iteration #{indx} ")
                     continue
-
+                    
                 file_hash = self.get_hash(path)
                 if hash_val != file_hash :
                     print(f"{CRITICAL} Path \'{path}\' Compromised !")
-                    logger.write(f"[{indx}] Iteration : {path.name} INTEGRITY COMPROMISED\n")
-                    logger.write(f"[{dt.now().strftime(strformat)}] ===On time, Report===\n{self.get_file_report(path, hash_val, modtime, strformat)}\n")
-                    logger.write(f"[{indx}] ===Generating new hash===\n")
+                    logger.write(f"[!!] === INTEGRITY COMPROMISED ==={self.get_file_report(path, hash_val, float(modtime), strformat)}")
+                    logger.write(f"[i] === Generating new hash ===\n")
                     row['hash'] = self.get_hash(path)
                     row['mtime'] = path.stat().st_mtime
 
-                self.paths = remlist_all(path, self.paths)
+                self.paths = remlist_all(str(path), self.paths)
                 if should_write :
                     writer.writerow(row)
+                logger.write(f"[i] End of Remonitor Iteration #{indx} ")
             
             if self.paths :
-                logger.write(f"[{dt.now().strftime(strformat)}] Assigning new file\n")
+                logger.write("[i] Assigning new file\n")
                 for i in self.paths :
                     if os.path.exists(i) :
                         logger.write(f"Path {i} Exists writing down file information\n")
                         writer.writerow({'path' : i, 'hash' : self.get_hash(i), 'mtime' : Path(i).stat().st_mtime})
-            logger.write(f"=====END OF REPORT=====\n\n")
+            else :
+                logger.write("[i] No new file was assigned\n")
+            logger.write(f"=====END OF LOG=====\n\n")
         os.replace(TEMP_PATH, DATA_PATH)
         Path(TEMP_PATH).touch()
 
-
-#This is not ready yet
+if __name__ == "__main__" :
+    tracemalloc.start()
+    FileChecker(["/home/adis/PersonalSecure/README.md"]).main()
+    print(f"Highest Memory Usage : {tracemalloc.get_traced_memory()[1]} B")
+    tracemalloc.stop()

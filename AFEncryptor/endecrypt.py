@@ -2,7 +2,6 @@ import argparse
 from cryptography.fernet import Fernet, InvalidToken
 from pathlib import Path
 import os
-import tracemalloc
 import struct
 from hashlib import pbkdf2_hmac
 import base64
