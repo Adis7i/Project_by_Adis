@@ -3,8 +3,9 @@ if __name__.find(".") != -1 :
 else :
     from paintext import *
 from pathlib import Path
-from os import path
-
+import os
+from contextlib import contextmanager
+from shutil import copy2, copyfileobj, rmtree
 def resolve_file_path(file_path: str | Path) -> Path | None :
     """
     Resolving file path by concatenating cwd with argument input if :
@@ -36,11 +37,11 @@ def resolve_file_path(file_path: str | Path) -> Path | None :
 
 def MultPath(paths: list | tuple) -> bool :
     """
-    Checks multiple path, return status 1 if all 
+    Checks the existence of multiple path, return True if exists, False if not exists
     """
     stat = True
     for i in paths :
-        if path.exists(i) :
+        if os.path.exists(i) :
             print(f"{SUCCES} Path {i} exists")
         else :
             print(f"{CRITICAL} Path {i} doesn't exists")
@@ -53,3 +54,76 @@ def remlist_all(element, input_list: list) -> list | None :
     while element in input_list :
         input_list.remove(element)
     return input_list
+
+
+class Stater() :
+    def __init__(self, parent_path) :
+        self.parent_path = Path(parent_path).expanduser()
+        self.__backup_path = Path(__file__).parent / ".backup"
+        self.__backup_path.mkdir(exist_ok=True)
+        self.__saved_state = []
+        self.__is_destructed = False
+        if not self.parent_path.exists() :
+            raise FileNotFoundError(f"Path \'{str(self.parent_path)}\' does NOT exists")
+        if self.parent_path.is_file() :
+            raise NotADirectoryError(f"Path \'{str(self.parent_path)}\' does not lead to a FOLDER path")
+
+    @property
+    def saved_state(self) :
+        return self.__saved_state
+    
+    @property
+    def is_destructed(self) -> bool :
+        """
+        returns True if destructed
+        returns False if not destructed
+        """
+        return self.__is_destructed
+
+    def save(self, filename: str) -> None :
+        """
+        Save a specified file from the parent folder path
+        """
+        if filename not in self.__saved_state and not self.__is_destructed :
+            file_path = self.parent_path / filename            
+            copy2(file_path, self.__backup_path)
+            self.__saved_state.append(filename)
+    
+    def restore_all(self) :
+        """
+        Restore all saved file
+        """
+        if not self.__is_destructed :
+            for filename in self.__saved_state :
+                with open(self.__backup_path / filename, 'rb') as source, open(self.parent_path / filename, 'wb') as destination :
+                    copyfileobj(source, destination)
+    
+    def restore(self, filename) -> None :
+        if filename in self.__saved_state :
+            with open(self.__backup_path / filename, 'rb') as source, open(self.parent_path / filename, 'wb') as destination :
+                copyfileobj(source, destination)
+
+    def destruct(self) :
+        """
+        Destruct the .backup folder with the item inside it
+        """
+        rmtree(str(self.__backup_path))
+        self.__is_destructed = True
+    
+    def reconstruct(self) :
+        """
+        Reconstruct the .backup folder again
+        """
+        if self.__is_destructed :
+            self.__backup_path.mkdir(exist_ok=True)
+            self.__is_destructed = False
+
+@contextmanager
+def stating(folder_path) :
+    obj_stater = Stater(folder_path)
+    try :
+        yield obj_stater
+    finally :
+        if not obj_stater.is_destructed :
+            obj_stater.destruct()
+
