@@ -1,4 +1,22 @@
 {
-    "gener" : ""
+    "encrypt_app" : {
+        "locker" : "encryptor",
+        "file" : "content",
+        "pass" : "password",
+        "tmp" : "encryptor_tmp.bin",
+        "storing_folder" : "data_storage",
+        "tmp_folder" : "temp"
+    },
 
+    "checker_app" : {
+        "locker" : "checker",
+        "storing_folder" : "data_storage"
+    },
+
+    "encoder_app" : {
+        "locker" : "encoder",
+        "encoded_container" : "encoded",
+        "decoded_container" : "decoded",
+        "storing_folder" : "data_storage"
+    }
 }
