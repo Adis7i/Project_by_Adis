@@ -57,7 +57,7 @@ def remlist_all(element, input_list: list) -> list | None :
     return input_list
 
 
-class Stater() :
+class _Stater() :
     def __init__(self, parent_path) :
         self.parent_path = Path(parent_path).expanduser()
         self.__backup_path = Path(__file__).parent / ".backup"
@@ -119,10 +119,15 @@ class Stater() :
         if self.__is_destructed :
             self.__backup_path.mkdir(exist_ok=True)
             self.__is_destructed = False
+    
+    def confirm(self) :
+        self.__is_destructed = True
 
+    def deny(self) :
+        self.__is_destructed = False
 @contextmanager
 def stating(folder_path) :
-    obj_stater = Stater(folder_path)
+    obj_stater = _Stater(folder_path)
     obj_stater.restore_ext = True
     try :
         yield obj_stater

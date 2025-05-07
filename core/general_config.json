@@ -5,12 +5,14 @@
         "pass" : "password",
         "tmp" : "encryptor_tmp.bin",
         "storing_folder" : "data_storage",
-        "tmp_folder" : "temp"
+        "tmp_folder" : ".temp"
     },
 
     "checker_app" : {
         "locker" : "checker",
-        "storing_folder" : "data_storage"
+        "storing_folder" : "data_storage",
+        "tmp_folder" : ".temp",
+        "tmp" : "checker_tmp.csv"
     },
 
     "encoder_app" : {
